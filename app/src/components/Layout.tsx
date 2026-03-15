@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
+import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import {
   Zap, LayoutDashboard, MessageSquare, FolderOpen,
@@ -18,8 +18,11 @@ const NAV_ITEMS = [
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+
+  const isChat = location.pathname.startsWith('/chat')
 
   const handleSignOut = async () => {
     await signOut()
@@ -92,7 +95,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        <main className="main-content">
+        <main className={`main-content ${isChat ? 'no-padding' : ''}`}>
           {children}
         </main>
       </div>

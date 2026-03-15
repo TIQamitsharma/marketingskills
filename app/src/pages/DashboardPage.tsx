@@ -26,6 +26,9 @@ export default function DashboardPage() {
 
   const firstName = user?.user_metadata?.full_name?.split(' ')[0] || 'there'
 
+  const hour = new Date().getHours()
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
+
   useEffect(() => {
     async function fetchData() {
       const [convRes, projRes, intRes, recentRes] = await Promise.all([
@@ -66,7 +69,7 @@ export default function DashboardPage() {
     <div className="page">
       <div className="page-header">
         <div>
-          <h1 className="page-title">Good morning, {firstName}</h1>
+          <h1 className="page-title">{greeting}, {firstName}</h1>
           <p className="page-sub">Your AI marketing workspace is ready.</p>
         </div>
         <Link to="/chat" className="btn btn-primary">

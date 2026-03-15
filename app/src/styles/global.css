@@ -46,8 +46,14 @@
   overflow-y: auto;
 }
 
+.main-content.no-padding {
+  padding: 0;
+  overflow: hidden;
+}
+
 @media (max-width: 768px) {
   .main-content { padding: 16px; }
+  .main-content.no-padding { padding: 0; }
 }
 
 /* ── SIDEBAR ─────────────────────────────────────── */
@@ -1074,7 +1080,7 @@
 /* ── CHAT PAGE ─────────────────────────────────────── */
 .chat-layout {
   display: flex;
-  height: calc(100svh - var(--topbar-h));
+  height: 100svh;
   overflow: hidden;
 }
 
