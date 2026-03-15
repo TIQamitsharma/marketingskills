@@ -803,6 +803,7 @@
 .category-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
 
 .skills-grouped { display: flex; flex-direction: column; gap: 32px; }
+.skill-group { display: flex; flex-direction: column; }
 .skill-group-title {
   font-size: 13px;
   font-weight: 600;
@@ -1024,6 +1025,9 @@
   align-items: start;
 }
 @media (max-width: 900px) { .project-detail-grid { grid-template-columns: 1fr; } }
+
+.project-detail-main { min-width: 0; }
+.project-detail-side { display: flex; flex-direction: column; gap: 16px; }
 
 .context-textarea {
   width: 100%;

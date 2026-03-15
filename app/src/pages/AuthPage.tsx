@@ -14,7 +14,6 @@ export default function AuthPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const [success, setSuccess] = useState(false)
 
   if (!loading && user) return <Navigate to="/" replace />
 
@@ -28,7 +27,10 @@ export default function AuthPage() {
       if (error) {
         setError(error.message)
       } else {
-        setSuccess(true)
+        const { error: signInError } = await signIn(email, password)
+        if (signInError) {
+          setError(signInError.message)
+        }
       }
     } else {
       const { error } = await signIn(email, password)
@@ -74,93 +76,80 @@ export default function AuthPage() {
 
       <div className="auth-right">
         <div className="auth-form-card">
-          {success ? (
-            <div className="auth-success">
-              <div className="success-icon">✓</div>
-              <h2>Account created!</h2>
-              <p>Check your email to verify your account, then sign in.</p>
-              <button className="auth-btn" onClick={() => { setMode('login'); setSuccess(false) }}>
-                Go to Sign In <ArrowRight size={16} />
-              </button>
+          <div className="auth-tabs">
+            <button
+              className={`auth-tab ${mode === 'login' ? 'active' : ''}`}
+              onClick={() => { setMode('login'); setError('') }}
+            >
+              Sign In
+            </button>
+            <button
+              className={`auth-tab ${mode === 'signup' ? 'active' : ''}`}
+              onClick={() => { setMode('signup'); setError('') }}
+            >
+              Create Account
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="auth-form">
+            {mode === 'signup' && (
+              <div className="form-group">
+                <label htmlFor="fullName">Full name</label>
+                <input
+                  id="fullName"
+                  type="text"
+                  value={fullName}
+                  onChange={e => setFullName(e.target.value)}
+                  placeholder="Jane Smith"
+                  required
+                />
+              </div>
+            )}
+
+            <div className="form-group">
+              <label htmlFor="email">Email address</label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="jane@company.com"
+                required
+              />
             </div>
-          ) : (
-            <>
-              <div className="auth-tabs">
+
+            <div className="form-group">
+              <label htmlFor="password">Password</label>
+              <div className="input-wrap">
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder={mode === 'signup' ? 'At least 8 characters' : '••••••••'}
+                  minLength={mode === 'signup' ? 8 : 6}
+                  required
+                />
                 <button
-                  className={`auth-tab ${mode === 'login' ? 'active' : ''}`}
-                  onClick={() => { setMode('login'); setError('') }}
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword(!showPassword)}
                 >
-                  Sign In
-                </button>
-                <button
-                  className={`auth-tab ${mode === 'signup' ? 'active' : ''}`}
-                  onClick={() => { setMode('signup'); setError('') }}
-                >
-                  Create Account
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
+            </div>
 
-              <form onSubmit={handleSubmit} className="auth-form">
-                {mode === 'signup' && (
-                  <div className="form-group">
-                    <label htmlFor="fullName">Full name</label>
-                    <input
-                      id="fullName"
-                      type="text"
-                      value={fullName}
-                      onChange={e => setFullName(e.target.value)}
-                      placeholder="Jane Smith"
-                      required
-                    />
-                  </div>
-                )}
+            {error && <div className="auth-error">{error}</div>}
 
-                <div className="form-group">
-                  <label htmlFor="email">Email address</label>
-                  <input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    placeholder="jane@company.com"
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="password">Password</label>
-                  <div className="input-wrap">
-                    <input
-                      id="password"
-                      type={showPassword ? 'text' : 'password'}
-                      value={password}
-                      onChange={e => setPassword(e.target.value)}
-                      placeholder={mode === 'signup' ? 'At least 8 characters' : '••••••••'}
-                      minLength={mode === 'signup' ? 8 : 6}
-                      required
-                    />
-                    <button
-                      type="button"
-                      className="password-toggle"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
-                  </div>
-                </div>
-
-                {error && <div className="auth-error">{error}</div>}
-
-                <button className="auth-btn" type="submit" disabled={submitting}>
-                  {submitting
-                    ? 'Please wait...'
-                    : mode === 'login' ? 'Sign In' : 'Create Account'
-                  }
-                  {!submitting && <ArrowRight size={16} />}
-                </button>
-              </form>
-            </>
-          )}
+            <button className="auth-btn" type="submit" disabled={submitting}>
+              {submitting
+                ? 'Please wait...'
+                : mode === 'login' ? 'Sign In' : 'Create Account'
+              }
+              {!submitting && <ArrowRight size={16} />}
+            </button>
+          </form>
         </div>
       </div>
     </div>
