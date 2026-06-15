@@ -6,9 +6,32 @@ export interface Message {
   content: string
 }
 
+export type AIProvider = 'anthropic' | 'openrouter' | 'gemini' | 'openai'
+
+export interface AIConfig {
+  provider: AIProvider
+  apiKey: string
+  model?: string
+}
+
+export const AI_PROVIDER_LABELS: Record<AIProvider, string> = {
+  anthropic: 'Claude (Anthropic)',
+  openrouter: 'OpenRouter',
+  gemini: 'Google Gemini',
+  openai: 'OpenAI',
+}
+
+// Maps integration ID → provider key
+export const INTEGRATION_TO_PROVIDER: Record<string, AIProvider> = {
+  claude: 'anthropic',
+  openrouter: 'openrouter',
+  gemini: 'gemini',
+  openai: 'openai',
+}
+
 export async function sendMessage(
   messages: Message[],
-  apiKey: string,
+  config: AIConfig,
   skillId: string | null,
   productContext: string | null
 ): Promise<string> {
@@ -26,7 +49,9 @@ export async function sendMessage(
     },
     body: JSON.stringify({
       messages,
-      apiKey,
+      apiKey: config.apiKey,
+      provider: config.provider,
+      model: config.model ?? null,
       skillId: skillId ?? null,
       skillName: skill?.name ?? null,
       skillDescription: skill?.description ?? null,

@@ -10,38 +10,71 @@ export interface Integration {
 }
 
 export const INTEGRATION_CATEGORIES = [
-  'AI & Core',
+  'AI & Models',
   'Analytics',
   'SEO',
   'Email Marketing',
   'Email Outreach',
-  'CRM',
+  'CRM & Sales',
   'Paid Advertising',
   'Payments & Revenue',
   'Product Analytics',
   'Social & Content',
   'Forms & CRO',
   'Data & Enrichment',
+  'Automation',
 ]
 
 export const INTEGRATIONS: Integration[] = [
+  // ── AI & Models ──────────────────────────────────────────────────────────────
   {
     id: 'claude',
     name: 'Claude (Anthropic)',
-    category: 'AI & Core',
-    description: 'Your Claude API key powers all AI-driven skill execution in the app.',
+    category: 'AI & Models',
+    description: 'Claude 3.5 Sonnet powers all AI skill execution. Add your Anthropic API key to get started.',
     apiKeyLabel: 'Anthropic API Key',
-    apiKeyPlaceholder: 'sk-ant-...',
+    apiKeyPlaceholder: 'sk-ant-api03-...',
     docsUrl: 'https://console.anthropic.com/settings/keys',
     envVar: 'ANTHROPIC_API_KEY',
   },
+  {
+    id: 'openrouter',
+    name: 'OpenRouter',
+    category: 'AI & Models',
+    description: 'Access hundreds of AI models (GPT-4o, Llama 3, Mistral, Gemma, etc.) through a single API key.',
+    apiKeyLabel: 'OpenRouter API Key',
+    apiKeyPlaceholder: 'sk-or-v1-...',
+    docsUrl: 'https://openrouter.ai/keys',
+    envVar: 'OPENROUTER_API_KEY',
+  },
+  {
+    id: 'gemini',
+    name: 'Google Gemini',
+    category: 'AI & Models',
+    description: 'Google Gemini 1.5 Pro and Flash models for AI-powered marketing assistance.',
+    apiKeyLabel: 'Google AI API Key',
+    apiKeyPlaceholder: 'AIzaSy...',
+    docsUrl: 'https://aistudio.google.com/app/apikey',
+    envVar: 'GOOGLE_AI_API_KEY',
+  },
+  {
+    id: 'openai',
+    name: 'OpenAI',
+    category: 'AI & Models',
+    description: 'GPT-4o and o1 models from OpenAI for marketing skill execution.',
+    apiKeyLabel: 'OpenAI API Key',
+    apiKeyPlaceholder: 'sk-proj-...',
+    docsUrl: 'https://platform.openai.com/api-keys',
+    envVar: 'OPENAI_API_KEY',
+  },
+  // ── Analytics ────────────────────────────────────────────────────────────────
   {
     id: 'ga4',
     name: 'Google Analytics 4',
     category: 'Analytics',
     description: 'Pull traffic data, conversion events, and audience insights for CRO and SEO analysis.',
-    apiKeyLabel: 'Service Account JSON or API Key',
-    apiKeyPlaceholder: 'GA4 Measurement ID or API credential',
+    apiKeyLabel: 'GA4 Measurement ID or API Key',
+    apiKeyPlaceholder: 'G-XXXXXXXXXX',
     docsUrl: 'https://developers.google.com/analytics/devguides/reporting/data/v1',
     envVar: 'GA4_API_KEY',
   },
@@ -86,6 +119,17 @@ export const INTEGRATIONS: Integration[] = [
     envVar: 'PLAUSIBLE_API_KEY',
   },
   {
+    id: 'posthog',
+    name: 'PostHog',
+    category: 'Analytics',
+    description: 'Open-source product analytics with session recording, feature flags, and A/B testing.',
+    apiKeyLabel: 'PostHog API Key',
+    apiKeyPlaceholder: 'phc_...',
+    docsUrl: 'https://posthog.com/docs/api',
+    envVar: 'POSTHOG_API_KEY',
+  },
+  // ── SEO ──────────────────────────────────────────────────────────────────────
+  {
     id: 'ahrefs',
     name: 'Ahrefs',
     category: 'SEO',
@@ -125,6 +169,7 @@ export const INTEGRATIONS: Integration[] = [
     docsUrl: 'https://docs.dataforseo.com/',
     envVar: 'DATAFORSEO_AUTH',
   },
+  // ── Email Marketing ───────────────────────────────────────────────────────────
   {
     id: 'mailchimp',
     name: 'Mailchimp',
@@ -185,6 +230,7 @@ export const INTEGRATIONS: Integration[] = [
     docsUrl: 'https://developers.beehiiv.com/',
     envVar: 'BEEHIIV_API_KEY',
   },
+  // ── Email Outreach ────────────────────────────────────────────────────────────
   {
     id: 'instantly',
     name: 'Instantly',
@@ -205,16 +251,48 @@ export const INTEGRATIONS: Integration[] = [
     docsUrl: 'https://developer.lemlist.com/',
     envVar: 'LEMLIST_API_KEY',
   },
+  // ── CRM & Sales ───────────────────────────────────────────────────────────────
   {
     id: 'apollo',
     name: 'Apollo.io',
-    category: 'CRM',
+    category: 'CRM & Sales',
     description: 'B2B contact database and sales engagement platform for prospecting.',
     apiKeyLabel: 'Apollo API Key',
     apiKeyPlaceholder: 'Your Apollo API key',
     docsUrl: 'https://apolloio.github.io/apollo-api-docs/',
     envVar: 'APOLLO_API_KEY',
   },
+  {
+    id: 'hubspot',
+    name: 'HubSpot',
+    category: 'CRM & Sales',
+    description: 'CRM platform for managing contacts, deals, pipelines, and marketing automation.',
+    apiKeyLabel: 'HubSpot Private App Token',
+    apiKeyPlaceholder: 'pat-na1-...',
+    docsUrl: 'https://developers.hubspot.com/docs/api/overview',
+    envVar: 'HUBSPOT_API_KEY',
+  },
+  {
+    id: 'salesforce',
+    name: 'Salesforce',
+    category: 'CRM & Sales',
+    description: 'Enterprise CRM for managing leads, opportunities, and customer relationships.',
+    apiKeyLabel: 'Salesforce Connected App Token',
+    apiKeyPlaceholder: 'Your Salesforce access token',
+    docsUrl: 'https://developer.salesforce.com/docs/apis',
+    envVar: 'SALESFORCE_ACCESS_TOKEN',
+  },
+  {
+    id: 'intercom',
+    name: 'Intercom',
+    category: 'CRM & Sales',
+    description: 'Customer messaging platform for support, onboarding, and lifecycle marketing.',
+    apiKeyLabel: 'Intercom Access Token',
+    apiKeyPlaceholder: 'Your Intercom access token',
+    docsUrl: 'https://developers.intercom.com/docs/build-an-integration/getting-started/',
+    envVar: 'INTERCOM_ACCESS_TOKEN',
+  },
+  // ── Paid Advertising ─────────────────────────────────────────────────────────
   {
     id: 'google-ads',
     name: 'Google Ads',
@@ -255,6 +333,50 @@ export const INTEGRATIONS: Integration[] = [
     docsUrl: 'https://ads.tiktok.com/marketing_api/docs',
     envVar: 'TIKTOK_ACCESS_TOKEN',
   },
+  // ── Payments & Revenue ────────────────────────────────────────────────────────
+  {
+    id: 'stripe',
+    name: 'Stripe',
+    category: 'Payments & Revenue',
+    description: 'Payment processing and revenue analytics — MRR, churn, and LTV insights.',
+    apiKeyLabel: 'Stripe Secret Key',
+    apiKeyPlaceholder: 'sk_live_...',
+    docsUrl: 'https://stripe.com/docs/api',
+    envVar: 'STRIPE_SECRET_KEY',
+  },
+  {
+    id: 'paddle',
+    name: 'Paddle',
+    category: 'Payments & Revenue',
+    description: 'Merchant of record payments platform for SaaS subscriptions.',
+    apiKeyLabel: 'Paddle API Key',
+    apiKeyPlaceholder: 'Your Paddle vendor API key',
+    docsUrl: 'https://developer.paddle.com/api-reference',
+    envVar: 'PADDLE_API_KEY',
+  },
+  // ── Product Analytics ─────────────────────────────────────────────────────────
+  {
+    id: 'pendo',
+    name: 'Pendo',
+    category: 'Product Analytics',
+    description: 'Product analytics, user guidance, and in-app messaging.',
+    apiKeyLabel: 'Pendo Integration Key',
+    apiKeyPlaceholder: 'Your Pendo integration key',
+    docsUrl: 'https://engageapi.pendo.io/',
+    envVar: 'PENDO_INTEGRATION_KEY',
+  },
+  // ── Social & Content ─────────────────────────────────────────────────────────
+  {
+    id: 'buffer',
+    name: 'Buffer',
+    category: 'Social & Content',
+    description: 'Schedule and publish social media content across channels.',
+    apiKeyLabel: 'Buffer Access Token',
+    apiKeyPlaceholder: 'Your Buffer access token',
+    docsUrl: 'https://buffer.com/developers/api',
+    envVar: 'BUFFER_ACCESS_TOKEN',
+  },
+  // ── Forms & CRO ──────────────────────────────────────────────────────────────
   {
     id: 'hotjar',
     name: 'Hotjar',
@@ -285,6 +407,7 @@ export const INTEGRATIONS: Integration[] = [
     docsUrl: 'https://www.typeform.com/developers/',
     envVar: 'TYPEFORM_TOKEN',
   },
+  // ── Data & Enrichment ────────────────────────────────────────────────────────
   {
     id: 'clearbit',
     name: 'Clearbit',
@@ -305,27 +428,20 @@ export const INTEGRATIONS: Integration[] = [
     docsUrl: 'https://hunter.io/api-documentation/',
     envVar: 'HUNTER_API_KEY',
   },
+  // ── Automation ───────────────────────────────────────────────────────────────
   {
-    id: 'buffer',
-    name: 'Buffer',
-    category: 'Social & Content',
-    description: 'Schedule and publish social media content across channels.',
-    apiKeyLabel: 'Buffer Access Token',
-    apiKeyPlaceholder: 'Your Buffer access token',
-    docsUrl: 'https://buffer.com/developers/api',
-    envVar: 'BUFFER_ACCESS_TOKEN',
-  },
-  {
-    id: 'pendo',
-    name: 'Pendo',
-    category: 'Product Analytics',
-    description: 'Product analytics, user guidance, and in-app messaging.',
-    apiKeyLabel: 'Pendo Integration Key',
-    apiKeyPlaceholder: 'Your Pendo integration key',
-    docsUrl: 'https://engageapi.pendo.io/',
-    envVar: 'PENDO_INTEGRATION_KEY',
+    id: 'zapier',
+    name: 'Zapier',
+    category: 'Automation',
+    description: 'Connect apps and automate workflows without code.',
+    apiKeyLabel: 'Zapier API Key',
+    apiKeyPlaceholder: 'Your Zapier API key',
+    docsUrl: 'https://platform.zapier.com/docs/zapier-developer-platform-intro',
+    envVar: 'ZAPIER_API_KEY',
   },
 ]
+
+export const AI_PROVIDER_IDS = ['claude', 'openrouter', 'gemini', 'openai']
 
 export const INTEGRATIONS_BY_CATEGORY = INTEGRATION_CATEGORIES.reduce((acc, category) => {
   acc[category] = INTEGRATIONS.filter(i => i.category === category)

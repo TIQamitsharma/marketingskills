@@ -1,10 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useSearchParams, Link } from 'react-router-dom'
-import { Send, Plus, ChevronDown, BookOpen, FolderOpen, CircleAlert as AlertCircle, MessageSquare, Trash2, Loader } from 'lucide-react'
+import {
+  Send, Plus, ChevronDown, BookOpen, FolderOpen,
+  CircleAlert as AlertCircle, MessageSquare, Trash2, Loader, Bot
+} from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
-import { sendMessage, type Message } from '../lib/claude'
+import {
+  sendMessage, type Message, type AIProvider, type AIConfig,
+  AI_PROVIDER_LABELS, INTEGRATION_TO_PROVIDER
+} from '../lib/claude'
 import { SKILLS, type Skill } from '../data/skills'
+import { AI_PROVIDER_IDS } from '../data/integrations'
 import MarkdownRenderer from '../components/MarkdownRenderer'
 
 interface Conversation {
@@ -20,6 +27,12 @@ interface Project {
   product_context: string | null
 }
 
+interface ConfiguredAI {
+  integrationId: string
+  provider: AIProvider
+  apiKey: string
+}
+
 export default function ChatPage() {
   const { user } = useAuth()
   const { id: convId } = useParams<{ id?: string }>()
@@ -31,12 +44,14 @@ export default function ChatPage() {
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
   const [error, setError] = useState('')
-  const [claudeKey, setClaudeKey] = useState('')
+  const [configuredAIs, setConfiguredAIs] = useState<ConfiguredAI[]>([])
+  const [selectedAIIndex, setSelectedAIIndex] = useState(0)
   const [projects, setProjects] = useState<Project[]>([])
   const [selectedProject, setSelectedProject] = useState<string | null>(searchParams.get('project'))
   const [selectedSkill, setSelectedSkill] = useState<string | null>(searchParams.get('skill'))
   const [showSkillPicker, setShowSkillPicker] = useState(false)
   const [showProjectPicker, setShowProjectPicker] = useState(false)
+  const [showProviderPicker, setShowProviderPicker] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [skillQuery, setSkillQuery] = useState('')
 
@@ -45,6 +60,7 @@ export default function ChatPage() {
 
   const activeSkill = selectedSkill ? SKILLS.find(s => s.id === selectedSkill) : null
   const activeProject = selectedProject ? projects.find(p => p.id === selectedProject) : null
+  const activeAI = configuredAIs[selectedAIIndex] ?? null
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -61,12 +77,21 @@ export default function ChatPage() {
   const fetchSidebarData = async () => {
     const [convRes, integRes, projRes] = await Promise.all([
       supabase.from('conversations').select('id, title, skill_used, created_at').order('created_at', { ascending: false }).limit(30),
-      supabase.from('user_integrations').select('api_key').eq('integration_key', 'claude').eq('is_configured', true).maybeSingle(),
+      supabase.from('user_integrations').select('integration_key, api_key').in('integration_key', AI_PROVIDER_IDS).eq('is_configured', true),
       supabase.from('projects').select('id, name, product_context').order('created_at', { ascending: false }),
     ])
+
     setConversations(convRes.data ?? [])
-    if (integRes.data?.api_key) setClaudeKey(integRes.data.api_key)
     setProjects(projRes.data ?? [])
+
+    const ais: ConfiguredAI[] = (integRes.data ?? [])
+      .filter(r => r.api_key)
+      .map(r => ({
+        integrationId: r.integration_key,
+        provider: INTEGRATION_TO_PROVIDER[r.integration_key] ?? 'anthropic',
+        apiKey: r.api_key!,
+      }))
+    setConfiguredAIs(ais)
   }
 
   const loadConversation = async (id: string) => {
@@ -84,12 +109,7 @@ export default function ChatPage() {
     const title = firstMessage.length > 60 ? firstMessage.slice(0, 60) + '...' : firstMessage
     const { data } = await supabase
       .from('conversations')
-      .insert({
-        user_id: user!.id,
-        title,
-        skill_used: skillId,
-        project_id: selectedProject ?? null,
-      })
+      .insert({ user_id: user!.id, title, skill_used: skillId, project_id: selectedProject ?? null })
       .select()
       .single()
     const newConv = data!
@@ -105,8 +125,8 @@ export default function ChatPage() {
     const text = input.trim()
     if (!text || sending) return
 
-    if (!claudeKey) {
-      setError('No Claude API key configured. Go to Integrations to add your Anthropic key.')
+    if (!activeAI) {
+      setError('No AI provider configured. Go to Integrations to add an API key.')
       return
     }
 
@@ -117,24 +137,23 @@ export default function ChatPage() {
     setMessages(newMessages)
     setSending(true)
 
-    let convId = activeConvId
+    let currentConvId = activeConvId
 
     try {
-      if (!convId) {
-        convId = await createConversation(text, selectedSkill)
-        setActiveConvId(convId)
+      if (!currentConvId) {
+        currentConvId = await createConversation(text, selectedSkill)
+        setActiveConvId(currentConvId)
       }
 
-      await saveMessage(convId, 'user', text)
+      await saveMessage(currentConvId, 'user', text)
 
+      const config: AIConfig = { provider: activeAI.provider, apiKey: activeAI.apiKey }
       const productContext = activeProject?.product_context ?? null
-
-      const reply = await sendMessage(newMessages, claudeKey, selectedSkill, productContext)
+      const reply = await sendMessage(newMessages, config, selectedSkill, productContext)
 
       const assistantMsg: Message = { role: 'assistant', content: reply }
       setMessages(prev => [...prev, assistantMsg])
-      await saveMessage(convId, 'assistant', reply)
-
+      await saveMessage(currentConvId, 'assistant', reply)
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Something went wrong'
       setError(msg)
@@ -166,6 +185,12 @@ export default function ChatPage() {
     setMessages([])
     setError('')
     setSelectedSkill(null)
+  }
+
+  const closeAllPickers = () => {
+    setShowSkillPicker(false)
+    setShowProjectPicker(false)
+    setShowProviderPicker(false)
   }
 
   const filteredSkills = SKILLS.filter(s =>
@@ -206,11 +231,7 @@ export default function ChatPage() {
                     <div className="conv-title">{conv.title}</div>
                     <div className="conv-meta">{new Date(conv.created_at).toLocaleDateString()}</div>
                   </div>
-                  <button
-                    className="conv-delete"
-                    onClick={e => deleteConversation(conv.id, e)}
-                    title="Delete"
-                  >
+                  <button className="conv-delete" onClick={e => deleteConversation(conv.id, e)} title="Delete">
                     <Trash2 size={12} />
                   </button>
                 </div>
@@ -223,10 +244,52 @@ export default function ChatPage() {
       <div className="chat-main">
         <div className="chat-toolbar">
           <div className="chat-toolbar-left">
+
+            {/* AI Provider picker */}
+            <div className="skill-selector-wrap">
+              <button
+                className={`skill-selector-btn ${activeAI ? 'has-skill' : ''}`}
+                onClick={() => { setShowProviderPicker(!showProviderPicker); setShowSkillPicker(false); setShowProjectPicker(false) }}
+              >
+                <Bot size={14} />
+                <span>{activeAI ? AI_PROVIDER_LABELS[activeAI.provider] : 'No AI key'}</span>
+                <ChevronDown size={12} />
+              </button>
+
+              {showProviderPicker && (
+                <div className="skill-picker-dropdown">
+                  <div className="skill-picker-list">
+                    {configuredAIs.length === 0 ? (
+                      <div className="picker-empty">
+                        <Link to="/integrations" onClick={closeAllPickers}>
+                          Add an AI key in Integrations →
+                        </Link>
+                      </div>
+                    ) : (
+                      configuredAIs.map((ai, idx) => (
+                        <button
+                          key={ai.integrationId}
+                          className={`skill-picker-item ${selectedAIIndex === idx ? 'active' : ''}`}
+                          onClick={() => { setSelectedAIIndex(idx); setShowProviderPicker(false) }}
+                        >
+                          <Bot size={14} />
+                          <div>
+                            <div className="skill-picker-name">{AI_PROVIDER_LABELS[ai.provider]}</div>
+                            <div className="skill-picker-cat">Connected</div>
+                          </div>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Skill picker */}
             <div className="skill-selector-wrap">
               <button
                 className={`skill-selector-btn ${activeSkill ? 'has-skill' : ''}`}
-                onClick={() => { setShowSkillPicker(!showSkillPicker); setShowProjectPicker(false) }}
+                onClick={() => { setShowSkillPicker(!showSkillPicker); setShowProjectPicker(false); setShowProviderPicker(false) }}
               >
                 <BookOpen size={14} />
                 {activeSkill ? (
@@ -272,10 +335,11 @@ export default function ChatPage() {
               )}
             </div>
 
+            {/* Project picker */}
             <div className="project-selector-wrap">
               <button
                 className={`skill-selector-btn ${activeProject ? 'has-skill' : ''}`}
-                onClick={() => { setShowProjectPicker(!showProjectPicker); setShowSkillPicker(false) }}
+                onClick={() => { setShowProjectPicker(!showProjectPicker); setShowSkillPicker(false); setShowProviderPicker(false) }}
               >
                 <FolderOpen size={14} />
                 {activeProject ? activeProject.name : 'No project'}
@@ -310,20 +374,20 @@ export default function ChatPage() {
             </div>
           </div>
 
-          {!claudeKey && (
+          {!activeAI && (
             <Link to="/integrations" className="no-key-warning">
               <AlertCircle size={14} />
-              Add Claude API key
+              Add AI API key
             </Link>
           )}
         </div>
 
-        <div className="chat-messages" onClick={() => { setShowSkillPicker(false); setShowProjectPicker(false) }}>
+        <div className="chat-messages" onClick={closeAllPickers}>
           {messages.length === 0 ? (
             <ChatWelcome
               skill={activeSkill ?? null}
               project={activeProject ?? null}
-              hasKey={!!claudeKey}
+              hasKey={!!activeAI}
               onSkillSelect={setSelectedSkill}
             />
           ) : (
@@ -424,7 +488,7 @@ function ChatWelcome({
       {!hasKey && (
         <div className="welcome-warning">
           <AlertCircle size={15} />
-          <span>No Claude API key found. <Link to="/integrations">Add your key</Link> to start chatting.</span>
+          <span>No AI key found. <Link to="/integrations">Add an API key</Link> to start chatting.</span>
         </div>
       )}
 

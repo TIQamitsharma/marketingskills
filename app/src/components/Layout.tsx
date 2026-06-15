@@ -7,7 +7,7 @@ import {
 } from 'lucide-react'
 
 const NAV_ITEMS = [
-  { to: '/', icon: <LayoutDashboard size={18} />, label: 'Dashboard' },
+  { to: '/dashboard', icon: <LayoutDashboard size={18} />, label: 'Dashboard' },
   { to: '/chat', icon: <MessageSquare size={18} />, label: 'Chat' },
   { to: '/projects', icon: <FolderOpen size={18} />, label: 'Projects' },
   { to: '/skills', icon: <BookOpen size={18} />, label: 'Skills' },
@@ -51,7 +51,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <NavLink
               key={item.to}
               to={item.to}
-              end={item.to === '/'}
+              end={item.to === '/dashboard'}
               className={({ isActive }) => `nav-item ${isActive ? 'nav-item-active' : ''}`}
               onClick={() => setMobileOpen(false)}
             >
